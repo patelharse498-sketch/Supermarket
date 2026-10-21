@@ -1,0 +1,6 @@
+{
+  "name": "FreshMart",
+  "description": "Supermarket and restaurant delivery app like Uber Eats for ordering from nearby Kenyan supermarkets and eateries with live search, scheduled delivery, and rewards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

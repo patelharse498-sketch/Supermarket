@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 &&
+             data.category is string &&
+             data.aisle is string &&
+             data.stockQuantity is int && data.stockQuantity >= 0 &&
+             data.price is number && data.price >= 0 &&
+             (!('unit' in data) || data.unit is string) &&
+             (!('imageUrl' in data) || data.imageUrl is string) &&
+             (!('description' in data) || data.description is string) &&
+             (!('isOrganic' in data) || data.isOrganic is bool) &&
+             (!('barcode' in data) || data.barcode is string) &&
+             (!('brand' in data) || data.brand is string) &&
+             (!('dietaryTags' in data) || data.dietaryTags is list) &&
+             (!('isOnSale' in data) || data.isOnSale is bool) &&
+             (!('originalPrice' in data) || data.originalPrice is number) &&
+             (!('promotionLabel' in data) || data.promotionLabel is string) &&
+             (!('storeId' in data) || data.storeId is string) &&
+             (!('storeName' in data) || data.storeName is string) &&
+             (!('storeType' in data) || data.storeType is string) &&
+             (!('createdAt' in data) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId == request.auth.uid &&
+             data.bonusPoints is int && data.bonusPoints >= 0 &&
+             data.tier in ['Bronze', 'Silver', 'Gold', 'Platinum'] &&
+             (!('email' in data) || data.email is string) &&
+             (!('displayName' in data) || data.displayName is string) &&
+             (!('address' in data) || data.address is string) &&
+             (!('createdAt' in data) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidOrder(data) {
+      return data.userId == request.auth.uid &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.finalAmount is number && data.finalAmount >= 0 &&
+             data.deliveryDate is string && data.deliveryDate.size() > 0 &&
+             data.deliveryTimeSlot is string && data.deliveryTimeSlot.size() > 0 &&
+             data.deliveryAddress is string && data.deliveryAddress.size() > 0 &&
+             data.status in ['Scheduled', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'] &&
+             (!('items' in data) || data.items is list) &&
+             (!('storeId' in data) || data.storeId is string) &&
+             (!('storeName' in data) || data.storeName is string) &&
+             (!('storeType' in data) || data.storeType is string) &&
+             (!('pointsRedeemed' in data) || (data.pointsRedeemed is int && data.pointsRedeemed >= 0)) &&
+             (!('discountAmount' in data) || (data.discountAmount is number && data.discountAmount >= 0)) &&
+             (!('pointsEarned' in data) || (data.pointsEarned is int && data.pointsEarned >= 0)) &&
+             (!('deliveryType' in data) || data.deliveryType is string) &&
+             (!('paymentMethod' in data) || data.paymentMethod is string) &&
+             (!('mpesaPhoneNumber' in data) || data.mpesaPhoneNumber is string) &&
+             (!('mpesaReceiptNumber' in data) || data.mpesaReceiptNumber is string) &&
+             (!('deliveryPin' in data) || data.deliveryPin is string) &&
+             (!('riderName' in data) || data.riderName is string) &&
+             (!('riderVehicle' in data) || data.riderVehicle is string) &&
+             (!('riderPhone' in data) || data.riderPhone is string) &&
+             (!('riderTip' in data) || (data.riderTip is number && data.riderTip >= 0)) &&
+             (!('specialInstructions' in data) || data.specialInstructions is string) &&
+             (!('isCutleryIncluded' in data) || data.isCutleryIncluded is bool) &&
+             (!('createdAt' in data) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    // Nearby supermarkets and restaurants
+    match /stores/{storeId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // Supermarket catalog and restaurant dishes
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isValidProduct(request.resource.data);
+      allow delete: if false;
+    }
+
+    // Customer profile with loyalty points
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+
+    // Orders with scheduled delivery
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidOrder(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid && isValidOrder(request.resource.data);
+      allow delete: if false;
+    }
+  }
+}

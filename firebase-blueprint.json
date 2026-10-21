@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Supermarket product with real-time aisle location and inventory stock count",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "aisle": { "type": "string" },
+        "stockQuantity": { "type": "integer" },
+        "price": { "type": "number" },
+        "unit": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "isOrganic": { "type": "boolean" },
+        "barcode": { "type": "string" },
+        "brand": { "type": "string" },
+        "dietaryTags": { "type": "array" },
+        "isOnSale": { "type": "boolean" },
+        "originalPrice": { "type": "number" },
+        "promotionLabel": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "FieldValue.serverTimestamp()" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "FieldValue.serverTimestamp()" }
+      },
+      "required": ["name", "category", "aisle", "stockQuantity", "price"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Customer profile containing bonus points balance, tier, and preferences",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "bonusPoints": { "type": "integer" },
+        "tier": { "type": "string", "enum": ["Bronze", "Silver", "Gold", "Platinum"] },
+        "address": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "FieldValue.serverTimestamp()" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "bonusPoints", "tier"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer home delivery order with bonus points discount applied",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "pointsRedeemed": { "type": "integer" },
+        "discountAmount": { "type": "number" },
+        "finalAmount": { "type": "number" },
+        "pointsEarned": { "type": "integer" },
+        "deliveryDate": { "type": "string" },
+        "deliveryTimeSlot": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "deliveryType": { "type": "string" },
+        "status": { "type": "string", "enum": ["Scheduled", "Preparing", "Out for Delivery", "Delivered", "Cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "FieldValue.serverTimestamp()" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "totalAmount", "finalAmount", "deliveryDate", "deliveryTimeSlot", "deliveryAddress", "status"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of all supermarket grocery items and real-time stock levels"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile with bonus points and customer information"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer home delivery orders with scheduled delivery window"
+    }
+  }
+}
